@@ -13,11 +13,13 @@ class ReservationController extends Controller
 {
     public function booked(Request $request)
     {
+        $today = date('Y-m-d');
+
         $request->validate([
             'name' => 'required',
             'email' => 'required',
-            'date_arrival' => 'required',
-            'date_checkout' => 'required'
+            'date_arrival' => 'required|date|after:today',
+            'date_checkout' => 'required|date|after:tomorrow'
         ]);
 
         $resv = new Reservations();
@@ -28,6 +30,12 @@ class ReservationController extends Controller
         $resv->room_name = $request->room_name;
 
         $resv->save();
+
+
+        // Get The Amount of Days Of Stay
+        $stayed_days = ceil(abs(strtotime($request->date_arrival) - strtotime($request->date_checkout)) / 86400);
+        (session(['stay_days' => $stayed_days]));
+
 
         $email = $request->email;
 
@@ -40,7 +48,8 @@ class ReservationController extends Controller
 
         // -1 Avaiable in database for available rooms column
         DB::table('rooms')->decrement('available');
-        return redirect('/')->with('success', 'Thank you for booking with Hotel Laravel! Please Check your Email For Confirmation');
+
+        return redirect('pay');
     }
 
 

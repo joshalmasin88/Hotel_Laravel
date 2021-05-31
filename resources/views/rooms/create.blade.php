@@ -4,7 +4,16 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 mx-auto">
-            <form action="post" enctype="multipart/form-data" method="post">
+            @if ($errors->any())
+                <div class="alert alert-danger alert-block">
+                    <button class="close" data-dismiss="alert">x</button>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif            <form action="post" enctype="multipart/form-data" method="post">
                 @csrf
                 <div class="form-group">
                     <input type="text" name="room_name" class="form-control" placeholder="Room Name">

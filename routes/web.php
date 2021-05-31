@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomsController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,6 @@ Auth::routes();
 Route::get('/', [RoomsController::class, 'index'])->name('home');
 Route::get('room/{room}', [RoomsController::class, 'show']);
 
-
 Route::get('book/{room}', [RoomsController::class, 'book']);
 Route::post('booked', [ReservationController::class, 'booked']);
 
@@ -32,6 +32,9 @@ Route::post('booked', [ReservationController::class, 'booked']);
 Route::get('staff', [RoomsController::class, 'staff']);
 Route::get('create', [RoomsController::class, 'create']);
 Route::post('post', [RoomsController::class, 'store']);
-Route::get('edit', [RoomsController::class, 'edit']);
+Route::get('edit/{room}', [RoomsController::class, 'edit']);
+Route::put('update/{room}', [RoomsController::class, 'update']);
 Route::delete('remove/{room}', [RoomsController::class, 'destroy']);
 
+Route::get('pay', [PaymentController::class, 'index']);
+Route::post('transaction', [PaymentController::class, 'makePayment'])->name('make-payment');

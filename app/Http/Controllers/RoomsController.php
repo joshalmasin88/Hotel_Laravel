@@ -36,19 +36,24 @@ class RoomsController extends Controller
 
     // ADMIN AUTHORIZED ONLY
 
-    public function staff()
-    {
-        if(Auth::check())
-        {
-            if(Auth::user()->is_admin == TRUE) {
-                $rooms = Rooms::all();
-                $resv = Reservations::all();
-                return view('staff.dashboard', compact('rooms', 'resv'));
-    
-            } else {
-                return redirect('/');
-            }
 
+    public function authorizedUser()
+    {
+       if(Auth::check() && Auth::user()->is_admin) 
+       {
+           return true;
+       }
+
+       return false;
+       
+    }
+
+    public function staff()
+    { 
+        if($this->authorizedUser()){
+            $rooms = Rooms::all();
+            $resv = Reservations::all();
+            return view('staff.dashboard', compact('rooms', 'resv'));    
         } else {
             return redirect()->back();
         }
@@ -57,73 +62,98 @@ class RoomsController extends Controller
 
     public function create()
     {
-        if(Auth::check())
+
+        if($this->authorizedUser())
         {
-            if(Auth::user()->is_admin == TRUE)
-            {
-                return redirect()->back();
-
-            } else {
-                return redirect('/');
-            }
-
-        } else {
-            return redirect()->back();
+            return view('rooms.create');
         }
+
+        return redirect()->back();
+
     }
 
     public function store(Request $request)
     {
 
-        if(Auth::check())
+        if($this->authorizedUser())
         {
-            if(Auth::user()->is_admin == TRUE) 
-            {
-                $request->validate([
-                    'room_name' => 'required',
+            $request->validate([
+                'room_name' => 'required',
+                'description' => 'required',
+                'available' => 'required',
+                'price' => 'required',
+                'img' => 'required|image|mimes:jpg,png,jpeg,gif,svg'
+            ]);
+    
+            $fileName = time().'.'.$request->img->extension();  
+    
+            $path = $request->img->move(public_path('images'), $fileName);
+    
+            $room = new Rooms();
+            $room->room_name = $request->room_name;
+            $room->description = $request->description;
+            $room->available = $request->available;
+            $room->price = $request->price;
+            $room->img_path = $fileName;
+    
+            $room->save();
+            return redirect('staff');
+        }
+
+    }
+
+    public function edit(Rooms $room)
+    {
+        if($this->authorizedUser())
+        {
+            return view('rooms.edit', compact('room'));
+        }
+
+        return redirect()->back();
+     
+    }
+
+    public function update(Rooms $room, Request $request)
+    {
+        if($this->authorizedUser())
+        {
+            $request->validate([
+                'room_name' => 'required',
                     'description' => 'required',
                     'available' => 'required',
                     'price' => 'required',
-                    'img' => 'required|image|mimes:jpg,png,jpeg,gif,svg'
+                    'img' => 'image|mimes:jpg,png,jpeg,gif,svg'
                 ]);
-        
-                $fileName = time().'.'.$request->img->extension();  
-        
-                $path = $request->img->move(public_path('images'), $fileName);
-        
-                $room = new Rooms();
+    
                 $room->room_name = $request->room_name;
                 $room->description = $request->description;
                 $room->available = $request->available;
                 $room->price = $request->price;
-                $room->img_path = $fileName;
-        
+    
+                if($request->img !== null){
+                    $fileName = time().'.'.$request->img->extension();  
+    
+                    $path = $request->img->move(public_path('images'), $fileName);
+            
+                    $room->img_path = $fileName;
+                } 
+    
                 $room->save();
                 return redirect('staff');
-            }else {
-                return redirect('/');
-            }
-        } else {
-            return redirect()->back();
         }
 
-
-        
     }
-
 
     public function destroy(Rooms $room)
     {
-        if(Auth::check())
+        if($this->authorizedUser())
         {
-            if(Auth::user()->is_admin == TRUE)
-                $room->delete();
-                return redirect('staff');
-
-        } else {
-            return redirect('/');
+            $room->delete();
+            return redirect('staff');
         }
 
+        return redirect()->back();
+        
     }
 
 }
